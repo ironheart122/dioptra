@@ -22,4 +22,4 @@ jobs:
       - uses: pnpm/action-setup@v6
       - run: pnpm ci
       - run: pnpm run build
-      - run: pnpm publish  --provenance --access public
+      - run: pnpm publish --provenance --access public --no-git-checks
