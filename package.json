@@ -1,0 +1,45 @@
+{
+  "name": "dioptra",
+  "version": "0.0.3",
+  "description": "Agentic GitHub repository analyzer - point it at a repo, get a structured read of the codebase. Early development.",
+  "type": "module",
+  "packageManager": "pnpm@11.5.3",
+  "bin": {
+    "dioptra": "dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "start": "node dist/cli.js",
+    "prepublishOnly": "pnpm run build"
+  },
+  "keywords": [
+    "cli",
+    "github",
+    "code-analysis",
+    "agent",
+    "rag",
+    "anthropic"
+  ],
+  "author": "ironheart122 <moncy@getsignalinbox.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/ironheart122/dioptra#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ironheart122/dioptra.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ironheart122/dioptra/issues"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.2",
+    "typescript": "^6.0.3"
+  }
+}
