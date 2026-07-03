@@ -1,7 +1,7 @@
 {
   "name": "dioptra",
   "version": "0.0.3",
-  "description": "Agentic GitHub repository analyzer - point it at a repo, get a structured read of the codebase. Early development.",
+  "description": "Point it at any public GitHub repo, ask a question in plain English, get a grounded answer with file:line citations.",
   "type": "module",
   "packageManager": "pnpm@11.5.3",
   "bin": {
@@ -17,15 +17,17 @@
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist",
+    "dev": "node --env-file-if-exists=.env --import tsx src/cli.ts",
     "start": "node dist/cli.js",
-    "prepublishOnly": "pnpm run build"
+    "prepublishOnly": "pnpm run clean && pnpm run build"
   },
   "keywords": [
     "cli",
     "github",
-    "code-analysis",
+    "code-search",
+    "developer-tools",
     "agent",
-    "rag",
+    "ai-agents",
     "anthropic"
   ],
   "author": "ironheart122 <moncy@getsignalinbox.com>",
@@ -40,6 +42,11 @@
   },
   "devDependencies": {
     "@types/node": "^25.9.2",
+    "tsx": "^4.22.4",
     "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.104.1",
+    "zod": "^4.4.3"
   }
 }
