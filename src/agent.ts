@@ -84,6 +84,12 @@ export async function* runAgent(
         message: "answer truncated: per-turn max_tokens reached",
       };
     }
+    if (message.stop_reason === "refusal") {
+      yield {
+        type: "notice",
+        message: "the model refused to answer this request (stop_reason: refusal)",
+      };
+    }
     if (message.stop_reason !== "tool_use" || forceFinal) {
       answer = turnText;
       break;

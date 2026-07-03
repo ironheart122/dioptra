@@ -76,7 +76,7 @@ function formatTokens(n: number): string {
   return n >= 1000 ? `${(n / 1000).toFixed(1)}K` : String(n);
 }
 
-const CITATION_RE = /[A-Za-z0-9_][A-Za-z0-9_./-]*:L\d+(?:-L?\d+)?/g;
+const CITATION_RE = /[A-Za-z0-9_.][A-Za-z0-9_./-]*:L\d+(?:-L?\d+)?/g;
 
 function printSources(answer: string, repo: ResolvedRepo): void {
   const seen = new Set<string>();
@@ -150,7 +150,7 @@ async function main(argv: string[]): Promise<number> {
   const model = MODEL_ALIASES[modelArg] ?? modelArg;
   let maxTurns = DEFAULT_MAX_TURNS;
   if (values["max-turns"] !== undefined) {
-    maxTurns = Number.parseInt(values["max-turns"], 10);
+    maxTurns = Number(values["max-turns"]);
     if (!Number.isInteger(maxTurns) || maxTurns < 1 || maxTurns > 50) {
       return fail("--max-turns must be an integer between 1 and 50");
     }

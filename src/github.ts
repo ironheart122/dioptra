@@ -70,7 +70,11 @@ export class GitHubClient {
     );
     let files = data.tree.filter((e) => e.type === "blob");
     const prefix = pathPrefix?.replace(/^\/+/, "");
-    if (prefix) files = files.filter((e) => e.path.startsWith(prefix));
+    if (prefix) {
+      // Match on path-segment boundaries so "src" doesn't also match "src2/".
+      const dirPrefix = prefix.endsWith("/") ? prefix : `${prefix}/`;
+      files = files.filter((e) => e.path === prefix || e.path.startsWith(dirPrefix));
+    }
 
     const shown = files.slice(0, MAX_TREE_ENTRIES);
     const notes: string[] = [];
