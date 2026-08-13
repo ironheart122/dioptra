@@ -16,6 +16,9 @@ dist/
 # npm pack artifacts
 *.tgz
 
+# eval intermediate output (the README carries the table)
+eval/results.json
+
 # logs
 *.log
 npm-debug.log*

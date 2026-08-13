@@ -98,14 +98,26 @@ function printSources(answer: string, repo: ResolvedRepo): void {
 
 function printCostSummary(usage: AgentUsage, model: string): void {
   const price = PRICING[model];
+  // Cache writes bill at 1.25× input price, cache reads at 0.1×.
+  const uncached = usage.inputTokens - usage.cacheReadTokens - usage.cacheWriteTokens;
   const cost = price
-    ? `~$${((usage.inputTokens * price.input + usage.outputTokens * price.output) / 1e6).toFixed(4)} · `
+    ? `~$${(
+        (uncached * price.input +
+          usage.cacheWriteTokens * price.input * 1.25 +
+          usage.cacheReadTokens * price.input * 0.1 +
+          usage.outputTokens * price.output) /
+        1e6
+      ).toFixed(4)} · `
     : "";
+  const cached =
+    usage.cacheReadTokens > 0
+      ? `, ${Math.round((usage.cacheReadTokens / usage.inputTokens) * 100)}% cached`
+      : "";
   const total = usage.inputTokens + usage.outputTokens;
   console.log(
     dim(
       `${cost}${usage.turns} turn${usage.turns === 1 ? "" : "s"} · ${formatTokens(total)} tokens ` +
-        `(${formatTokens(usage.inputTokens)} in / ${formatTokens(usage.outputTokens)} out) · ${model}`,
+        `(${formatTokens(usage.inputTokens)} in${cached} / ${formatTokens(usage.outputTokens)} out) · ${model}`,
     ),
   );
 }
