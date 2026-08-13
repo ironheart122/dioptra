@@ -32,7 +32,7 @@
     "repo": "sindresorhus/ky",
     "type": "where",
     "question": "Where is the retry delay/backoff computed?",
-    "reference": "Retry orchestration lives in source/core/Ky.ts (the _retry flow); the delay computation is in source/core/retry-timing.ts — exponential backoff capped by backoffLimit, respecting the Retry-After header. Retry defaults (methods, status codes like 408/413/429/5xx, afterStatusCodes) are in source/core/constants.ts, and the retry option types in source/types/retry.ts."
+    "reference": "The default exponential-backoff formula (0.3 * 2^(attempt-1) seconds) is the retry.delay default in source/utils/normalize.ts; the core computation — applying jitter and the backoffLimit cap — is #calculateDelay() in source/core/Ky.ts, with the surrounding retry-decision flow (#calculateRetryDelay) also in Ky.ts. source/core/retry-timing.ts handles Retry-After header timing; retry option types live in source/types/retry.ts."
   },
   {
     "id": "ky-behavior",

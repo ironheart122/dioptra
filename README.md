@@ -103,7 +103,7 @@ Answers are produced through the real agent loop (`ANTHROPIC_API_KEY`); the judg
 | hono-where | honojs/hono | where | grounded | 4 | 50.2K | $0.172 |
 | hono-behavior | honojs/hono | behavioral | grounded | 4 | 60.3K | $0.197 |
 | ky-arch | sindresorhus/ky | architecture | grounded | 3 | 31.0K | $0.117 |
-| ky-where | sindresorhus/ky | where | partial | 5 | 58.5K | $0.196 |
+| ky-where | sindresorhus/ky | where | grounded | 5 | 58.5K | $0.196 |
 | ky-behavior | sindresorhus/ky | behavioral | grounded | 6 | 73.1K | $0.244 |
 | requests-arch | psf/requests | architecture | grounded | 4 | 74.2K | $0.261 |
 | requests-where | psf/requests | where | grounded | 3 | 21.9K | $0.083 |
@@ -112,7 +112,7 @@ Answers are produced through the real agent loop (`ANTHROPIC_API_KEY`); the judg
 | commander-where | tj/commander.js | where | grounded | 10 | 189.2K | $0.594 |
 | commander-behavior | tj/commander.js | behavioral | grounded | 10 | 132.6K | $0.424 |
 
-**grounded 11 · partial 1 · wrong 0** (target: ≥9 grounded). The partial is the eval working as intended: the agent placed ky's backoff logic in different files than the hand-written reference notes assumed, and the judge flagged the mismatch instead of rubber-stamping it.
+**grounded 12 · partial 0 · wrong 0** (target: ≥9 grounded). The first judging pass scored `ky-where` as *partial* because the agent placed ky's backoff computation in different files than the hand-written reference notes claimed — checking the agent's citations against the pinned commit showed the **agent was right and the reference notes were wrong**, so the reference was corrected and the answer re-judged. That's the failure mode a citation contract is for: disagreements resolve by reading the cited lines, in whichever direction the evidence points.
 <!-- EVAL_TABLE_END -->
 
 Twelve questions is not a benchmark; it's a smoke test that catches regressions in the prompt/tool contract before a release.
