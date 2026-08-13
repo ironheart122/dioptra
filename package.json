@@ -14,10 +14,11 @@
     "node": ">=22"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist",
     "dev": "node --env-file-if-exists=.env --import tsx src/cli.ts",
+    "eval": "node --env-file-if-exists=.env --import tsx eval/run.ts",
     "start": "node dist/cli.js",
     "prepublishOnly": "pnpm run clean && pnpm run build"
   },

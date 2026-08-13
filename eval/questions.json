@@ -1,0 +1,86 @@
+[
+  {
+    "id": "hono-arch",
+    "repo": "honojs/hono",
+    "type": "architecture",
+    "question": "How does middleware composition work?",
+    "reference": "Middleware is composed in src/compose.ts: compose() returns a dispatcher that walks the matched handler list recursively, giving each middleware the context and a next() that advances an index (calling next() twice in one middleware throws). Hono's dispatch (src/hono-base.ts) collects matched handlers from the router and runs them through compose onion-style, with the error handler and notFound handler applied around the chain."
+  },
+  {
+    "id": "hono-where",
+    "repo": "honojs/hono",
+    "type": "where",
+    "question": "Where are the router implementations, and which routers does Hono ship?",
+    "reference": "Routers live under src/router/: RegExpRouter (reg-exp-router), TrieRouter (trie-router), SmartRouter (smart-router), PatternRouter, and LinearRouter. SmartRouter defers picking a concrete router until the first dispatch; the default preset pairs RegExpRouter with TrieRouter as fallback."
+  },
+  {
+    "id": "hono-behavior",
+    "repo": "honojs/hono",
+    "type": "behavioral",
+    "question": "What happens when a request doesn't match any route?",
+    "reference": "Dispatch falls through to the app's notFound handler. The default notFoundHandler (src/hono-base.ts) returns a plain-text '404 Not Found' response with status 404; apps override it via app.notFound()."
+  },
+  {
+    "id": "ky-arch",
+    "repo": "sindresorhus/ky",
+    "type": "architecture",
+    "question": "How do beforeRequest and afterResponse hooks work?",
+    "reference": "Hooks are arrays on the normalized options. The Ky core runs beforeRequest hooks before fetching — a hook may return a Request (replacing the request) or a Response (short-circuiting the fetch) — and afterResponse hooks after each response, which can return a replacement Response or trigger a retry. When extending a ky instance, hook arrays are merged rather than replaced."
+  },
+  {
+    "id": "ky-where",
+    "repo": "sindresorhus/ky",
+    "type": "where",
+    "question": "Where is the retry delay/backoff computed?",
+    "reference": "Retry orchestration lives in source/core/Ky.ts (the _retry flow); the delay computation is in source/core/retry-timing.ts — exponential backoff capped by backoffLimit, respecting the Retry-After header. Retry defaults (methods, status codes like 408/413/429/5xx, afterStatusCodes) are in source/core/constants.ts, and the retry option types in source/types/retry.ts."
+  },
+  {
+    "id": "ky-behavior",
+    "repo": "sindresorhus/ky",
+    "type": "behavioral",
+    "question": "What happens when a response comes back with a non-2xx status?",
+    "reference": "Retriable statuses go through the retry flow first; once retries are exhausted (or the status is not retriable), ky throws an HTTPError (source/errors/HTTPError.ts) carrying the request, response, and options — unless throwHttpErrors is false, in which case the response is returned as-is."
+  },
+  {
+    "id": "requests-arch",
+    "repo": "psf/requests",
+    "type": "architecture",
+    "question": "How does a Session send a request end to end?",
+    "reference": "Session.request (src/requests/sessions.py) merges session- and call-level settings and builds a PreparedRequest via prepare_request; Session.send then selects a transport adapter with get_adapter (adapters are mounted by URL prefix; the default HTTPAdapter in src/requests/adapters.py wraps urllib3), sends it, handles redirect resolution, and returns a Response."
+  },
+  {
+    "id": "requests-where",
+    "repo": "psf/requests",
+    "type": "where",
+    "question": "Where is redirect handling implemented?",
+    "reference": "In SessionRedirectMixin in src/requests/sessions.py — resolve_redirects generates successive requests, with helpers like rebuild_auth, rebuild_proxies, and should_strip_auth; exceeding max_redirects raises TooManyRedirects."
+  },
+  {
+    "id": "requests-behavior",
+    "repo": "psf/requests",
+    "type": "behavioral",
+    "question": "What does Response.raise_for_status() do?",
+    "reference": "Defined on Response in src/requests/models.py: raises requests.exceptions.HTTPError when the status code is 4xx (client error) or 5xx (server error), with a message built from the status code, reason, and URL; for other statuses it does nothing."
+  },
+  {
+    "id": "commander-arch",
+    "repo": "tj/commander.js",
+    "type": "architecture",
+    "question": "How does option parsing work?",
+    "reference": "Command#parseOptions in lib/command.js walks the argv tokens, matching them against registered Option instances (lib/option.js) — long flags, short flags, combined short flags, --flag=value, and negatable --no- variants — storing values through the option-value machinery (with value sources); unrecognized tokens are collected as operands or unknown options."
+  },
+  {
+    "id": "commander-where",
+    "repo": "tj/commander.js",
+    "type": "where",
+    "question": "Where is help output generated?",
+    "reference": "The Help class in lib/help.js does the formatting (formatHelp plus helpers like visibleOptions, visibleCommands, and text-wrapping utilities); Command's helpInformation/outputHelp in lib/command.js delegate to it."
+  },
+  {
+    "id": "commander-behavior",
+    "repo": "tj/commander.js",
+    "type": "behavioral",
+    "question": "What happens when the user passes an unknown option?",
+    "reference": "By default Command#unknownOption in lib/command.js reports it as an error — printing something like \"error: unknown option '--x'\", optionally with a did-you-mean suggestion (lib/suggestSimilar.js) — and exits with a non-zero code via the CommanderError path; allowUnknownOption() disables the check."
+  }
+]
