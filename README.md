@@ -79,6 +79,7 @@ That's why the roadmap has an *optional* indexing mode rather than the architect
 - **Line-numbered reads.** `read_file` prepends line numbers, and the system prompt forbids citing a file the agent hasn't read — search fragments carry no line numbers, so the contract forces a read before a citation.
 - **Errors are tool results, not crashes.** 404s and rate limits go back to the model as `is_error` tool results, with retry-after info so it pivots to tree+read instead of re-searching blindly.
 - **Hard budgets, graceful exit.** 15 tool-use turns and a 200K input-token ceiling; on exhaustion the loop forces a final answer (`tool_choice: none`) with instructions to state what it couldn't verify. Every run ends with a cost line.
+- **Prompt caching by default.** The system prompt/tools carry a cache breakpoint and a second one moves to the tail of the conversation each turn, so multi-turn runs replay their history at 0.1× input price instead of full-price resends — the cost line prices cache reads and writes at their real rates and shows the hit percentage.
 - **Anthropic only, Zod v4 native.** Multi-provider pluggability is a YAGNI trap at this size; tool schemas derive JSON Schema via `z.toJSONSchema()` — no extra dependency.
 
 ## Eval

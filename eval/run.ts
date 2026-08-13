@@ -54,7 +54,18 @@ interface Result {
 function costOf(usage: AgentUsage, model: string): number | undefined {
   const price = PRICING[model];
   if (!price) return undefined;
-  return (usage.inputTokens * price.input + usage.outputTokens * price.output) / 1e6;
+  // Cache writes bill at 1.25× input price, cache reads at 0.1×. Old
+  // results.json entries predate the cache fields — treat them as uncached.
+  const read = usage.cacheReadTokens ?? 0;
+  const write = usage.cacheWriteTokens ?? 0;
+  const uncached = usage.inputTokens - read - write;
+  return (
+    (uncached * price.input +
+      write * price.input * 1.25 +
+      read * price.input * 0.1 +
+      usage.outputTokens * price.output) /
+    1e6
+  );
 }
 
 async function runQuestion(
@@ -67,7 +78,13 @@ async function runQuestion(
   const github = new GitHubClient(githubToken, owner, repo);
   const resolved = await github.resolve();
   let answer = "";
-  let usage: AgentUsage = { inputTokens: 0, outputTokens: 0, turns: 0 };
+  let usage: AgentUsage = {
+    inputTokens: 0,
+    cacheReadTokens: 0,
+    cacheWriteTokens: 0,
+    outputTokens: 0,
+    turns: 0,
+  };
   for await (const event of runAgent({ client, github, repo: resolved, question: q.question, model })) {
     if (event.type === "tool_call") process.stdout.write(".");
     if (event.type === "done") ({ answer, usage } = event);

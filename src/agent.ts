@@ -22,9 +22,40 @@ export interface AgentConfig {
 }
 
 export interface AgentUsage {
+  /** Total input tokens, cache reads and writes included. */
   inputTokens: number;
+  cacheReadTokens: number;
+  cacheWriteTokens: number;
   outputTokens: number;
   turns: number;
+}
+
+const CACHE_CONTROL: Anthropic.CacheControlEphemeral = { type: "ephemeral" };
+
+type CacheableBlock = {
+  type: string;
+  cache_control?: Anthropic.CacheControlEphemeral | null;
+};
+
+// Move the conversation cache breakpoint to the last block of the last
+// message, so each turn replays the previous turns as a cache read (0.1×
+// price) instead of a full-price resend. The system prompt + tools carry
+// their own breakpoint; the API allows 4 total.
+function moveCacheBreakpoint(messages: Anthropic.MessageParam[]): void {
+  for (const message of messages) {
+    if (Array.isArray(message.content)) {
+      for (const block of message.content) {
+        delete (block as CacheableBlock).cache_control;
+      }
+    }
+  }
+  const last = messages.at(-1);
+  if (!last) return;
+  if (typeof last.content === "string") {
+    last.content = [{ type: "text", text: last.content }];
+  }
+  const lastBlock = last.content.at(-1);
+  if (lastBlock) (lastBlock as CacheableBlock).cache_control = CACHE_CONTROL;
 }
 
 export type AgentEvent =
@@ -39,18 +70,31 @@ export async function* runAgent(
 ): AsyncGenerator<AgentEvent> {
   const { client, github, repo, question, model } = config;
   const maxTurns = config.maxTurns ?? DEFAULT_MAX_TURNS;
-  const system = buildSystemPrompt(repo, maxTurns);
+  const system: Anthropic.TextBlockParam[] = [
+    {
+      type: "text",
+      text: buildSystemPrompt(repo, maxTurns),
+      cache_control: CACHE_CONTROL,
+    },
+  ];
 
   const messages: Anthropic.MessageParam[] = [
     { role: "user", content: question },
   ];
-  const usage: AgentUsage = { inputTokens: 0, outputTokens: 0, turns: 0 };
+  const usage: AgentUsage = {
+    inputTokens: 0,
+    cacheReadTokens: 0,
+    cacheWriteTokens: 0,
+    outputTokens: 0,
+    turns: 0,
+  };
   let warned = false;
   let forceFinal = false;
   let answer = "";
 
   while (true) {
     usage.turns++;
+    moveCacheBreakpoint(messages);
     const stream = client.messages.stream({
       model,
       max_tokens: MAX_TOKENS_PER_TURN,
@@ -71,10 +115,11 @@ export async function* runAgent(
       }
     }
     const message = await stream.finalMessage();
-    usage.inputTokens +=
-      message.usage.input_tokens +
-      (message.usage.cache_creation_input_tokens ?? 0) +
-      (message.usage.cache_read_input_tokens ?? 0);
+    const cacheWrite = message.usage.cache_creation_input_tokens ?? 0;
+    const cacheRead = message.usage.cache_read_input_tokens ?? 0;
+    usage.inputTokens += message.usage.input_tokens + cacheWrite + cacheRead;
+    usage.cacheWriteTokens += cacheWrite;
+    usage.cacheReadTokens += cacheRead;
     usage.outputTokens += message.usage.output_tokens;
     messages.push({ role: "assistant", content: message.content });
 
